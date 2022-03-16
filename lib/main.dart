@@ -1,6 +1,7 @@
 import 'package:example_cpl/database/db.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 
 import 'dialogs/new_user_dialog.dart';
 import 'hub_screen.dart';
@@ -46,6 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
   );
   final TextStyle normalStyle = const TextStyle(color: Colors.grey);
   LoginType? loginAttempt;
+
   void doLogin(BuildContext context) async {
     String username = _usernameController.value.text;
     String password = _passwordController.value.text;
@@ -70,49 +72,35 @@ class _MyHomePageState extends State<MyHomePage> {
           context: context,
           builder: (context) {
             return const NewUser();
-          });
+          }
+      );
     });
   }
 
-  @override
-  Widget build(BuildContext context) {
+  buildLoginChildren() {
+    List<Widget> loginChildren = [];
+    loginChildren.add(buildTextField(obscureText: false, hint: "Username", textEditingController: _usernameController));
+    return loginChildren;
 
-    // Base children. Will always show.
-    List<Widget> loginChildren = [
-      buildTextField(
-          obscureText: false,
-          hint: "Username",
-          textEditingController: _usernameController
-      ),
-      Padding(
-        padding: const EdgeInsets.only(top: 10.0),
-        child: buildTextField(
-            obscureText: true,
-            hint: "Password",
-            textEditingController: _passwordController
-        ),
-      ),
-      Padding(
-        padding: const EdgeInsets.only(top: 10.0),
-        child: Center(child: ElevatedButton(onPressed: (){doLogin(context);}, child: const Text("Login"))),
-      ),
-      RichText(
-          text: TextSpan(
-              style: normalStyle,
-              children: [
-                const TextSpan(text: "New user? "),
-                TextSpan(
-                    text: "Sign up",
-                    style: linkStyle,
-                    recognizer: TapGestureRecognizer()..onTap = () => signUpDialog(context)
-                ),
-                const TextSpan(text: " today!")
-              ]
-          )
-      )
-    ];
+  }
 
-    // messages
+  Widget buildRegisterMessage() {
+    TapGestureRecognizer signUpClicked = TapGestureRecognizer();
+    signUpClicked.onTap = () => signUpDialog(context);
+
+    return RichText(
+        text: TextSpan(
+            style: normalStyle,
+            children: [
+              const TextSpan(text: "New user? "),
+              TextSpan(text: "Sign up", style: linkStyle, recognizer: signUpClicked),
+              const TextSpan(text: " today!")
+            ]
+        )
+    );
+  }
+
+  addErrorToScreenIfNeeded(List<Widget> loginChildren) {
     if (loginAttempt != LoginType.succeeded) {
       if (loginAttempt == LoginType.passwordFail) {
         loginChildren.add(const Text("Incorrect password", style: errorStyle,));
@@ -120,6 +108,43 @@ class _MyHomePageState extends State<MyHomePage> {
         loginChildren.add(const Text("User not found", style: errorStyle));
       }
     }
+  }
+
+  Widget buildLoginButton() {
+    return Padding(
+      padding: const EdgeInsets.only(top: 10.0),
+      child: Center(
+        child: ElevatedButton(
+            onPressed: (){
+              doLogin(context);
+            },
+            child: const Text("Login")
+        )
+      ),
+    );
+  }
+
+  Widget buildPasswordTextBox() {
+    return Padding(
+        padding: const EdgeInsets.only(top: 10.0),
+        child: buildTextField(
+            obscureText: true,
+            hint: "Password",
+            textEditingController: _passwordController)
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    // Base children. Will always show.
+    List<Widget> loginChildren = [
+      buildTextField(hint: "Username", textEditingController: _usernameController, obscureText: false),
+      buildPasswordTextBox(),
+      buildLoginButton(),
+      buildRegisterMessage()
+    ];
+    addErrorToScreenIfNeeded(loginChildren);
 
     return Scaffold(
       appBar: AppBar(
