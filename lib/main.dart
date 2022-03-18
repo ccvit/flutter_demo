@@ -1,3 +1,4 @@
+import 'package:example_cpl/blocs/authentication_bloc.dart';
 import 'package:example_cpl/database/db.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -38,7 +39,7 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
+  //final AuthenticationBloc _authenticationBloc = AuthenticationBloc();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextStyle linkStyle = const TextStyle(
@@ -77,7 +78,7 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
-  buildLoginChildren() {
+  List<Widget> buildLoginChildren() {
     List<Widget> loginChildren = [];
     loginChildren.add(buildTextField(obscureText: false, hint: "Username", textEditingController: _usernameController));
     return loginChildren;
@@ -100,13 +101,10 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  addErrorToScreenIfNeeded(List<Widget> loginChildren) {
+  void buildErrorMessageIfNeeded(List<Widget> loginChildren) {
+
     if (loginAttempt != LoginType.succeeded) {
-      if (loginAttempt == LoginType.passwordFail) {
-        loginChildren.add(const Text("Incorrect password", style: errorStyle,));
-      } else if (loginAttempt == LoginType.usernameFail) {
-        loginChildren.add(const Text("User not found", style: errorStyle));
-      }
+      loginChildren.add(Text(loginAttempt.toString(), style: errorStyle));
     }
   }
 
@@ -144,7 +142,7 @@ class _MyHomePageState extends State<MyHomePage> {
       buildLoginButton(),
       buildRegisterMessage()
     ];
-    addErrorToScreenIfNeeded(loginChildren);
+    buildErrorMessageIfNeeded(loginChildren);
 
     return Scaffold(
       appBar: AppBar(
@@ -161,5 +159,10 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       )
     );
+  }
+  @override 
+  void dispose() {
+    //_authenticationBloc.dispose();
+    super.dispose();
   }
 }

@@ -26,7 +26,10 @@ class _NewUserState extends State<NewUser> {
     String confirmPassword = _confirmPasswordController.value.text;
     if (password == confirmPassword) {
       DatabaseProvider provider = DatabaseProvider();
-      registerType = await provider.createUser(username: username, password: password);
+      registerType = await provider.createUser(
+          username: username,
+          password: password
+      );
       if (registerType == RegisterType.succeeded) {
         Navigator.of(context).pop();
         Navigator.push(
@@ -75,6 +78,7 @@ class _NewUserState extends State<NewUser> {
         ),
       )
     ];
+
     // error children
     if (registerType == RegisterType.passwordFail) {
       registerChildren.add(Text("Passwords do not match", style: errorStyle,));
