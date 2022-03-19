@@ -1,3 +1,4 @@
+import 'package:example_cpl/kepler_api.dart';
 import 'package:flutter/material.dart';
 
 class Hub extends StatefulWidget {
@@ -18,6 +19,8 @@ class _Hub extends State<Hub> {
   int _counter = 0;
 
   incrementCounter() {
+    KeplerApi keplerApi = KeplerApi();
+    keplerApi.getDataOfAllPlanets();
     _counter++;
     setState((){});
   }

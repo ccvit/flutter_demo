@@ -1,8 +1,6 @@
-import 'package:example_cpl/blocs/authentication_bloc.dart';
 import 'package:example_cpl/database/db.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 
 import 'dialogs/new_user_dialog.dart';
 import 'hub_screen.dart';
@@ -102,9 +100,12 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void buildErrorMessageIfNeeded(List<Widget> loginChildren) {
-
     if (loginAttempt != LoginType.succeeded) {
-      loginChildren.add(Text(loginAttempt.toString(), style: errorStyle));
+      if (loginAttempt == LoginType.passwordFail) {
+        loginChildren.add(const Text("Incorrect Password", style: errorStyle));
+      } else if (loginAttempt == LoginType.usernameFail){
+        loginChildren.add(const Text("User not found", style: errorStyle));
+      }
     }
   }
 

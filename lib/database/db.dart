@@ -30,6 +30,7 @@ class DatabaseProvider {
       version: 2,
       onOpen: (db) {
       },
+        // database tables
       onCreate: (db, version) {
         return db.execute(
           'CREATE TABLE user(userId INTEGER PRIMARY KEY, username TEXT)',
