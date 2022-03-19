@@ -1,9 +1,7 @@
 import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-
 import 'database/planet.dart';
+
 class KeplerApi {
 
   final String _baseAddress = "exoplanetarchive.ipac.caltech.edu";
@@ -44,7 +42,7 @@ class KeplerApi {
     return planets;
   }
 
-  Future<List<Planet>> getDataOfSinglePlanet(String planetName) async {
+  Future<List<Planet>> getDataOfSearchedPlanets(String planetName) async {
 
     // params to search in API
     Map<String, String> params = {
