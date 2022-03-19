@@ -24,10 +24,8 @@ class KeplerApi {
     String data = requestResults.body;
     List<dynamic> rawDataList = jsonDecode(data);
     for (dynamic rawData in rawDataList) {
-      if (kDebugMode) {
-        Planet planet = Planet.fromJson(rawData);
-        planets.add(planet);
-      }
+      Planet planet = Planet.fromJson(rawData);
+      planets.add(planet);
     }
     return planets;
   }
