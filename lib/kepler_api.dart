@@ -30,11 +30,20 @@ class KeplerApi {
 
   Future<List<Planet>> getDataOfAllPlanets() async {
 
-    // params to search in API
+    /*
+      params to search in API
+      kepid: unique id of the planet.
+      kepler_name: name of planet.
+      koi_prad: the radius of the planet in Earth Radii.
+      koi_dor: distance of planet from its star.
+      koi_pdisposition: status of planet (FALSE POSITIVE, NOT DISPOSITIONED, and CANDIDATE).
+      koi_teq: temperature of the planet in kelvin.
+    */
+
     Map<String, String> params = {
       "table" : "cumulative",
       "format" : "json",
-      "select" : "kepid,kepler_name,koi_prad,koi_dor,koi_pdisposition",
+      "select" : "kepid,kepler_name,koi_prad,koi_dor,koi_pdisposition,koi_teq",
       "where" : "kepler_name is not null"
     };
 

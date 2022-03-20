@@ -57,7 +57,7 @@ class _MyHomePageState extends State<MyHomePage> {
       if (loginAttempt == LoginType.succeeded) {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Hub(username)),
+          MaterialPageRoute(builder: (context) => PlanetDatabase(username)),
         );
       }
       setState((){});

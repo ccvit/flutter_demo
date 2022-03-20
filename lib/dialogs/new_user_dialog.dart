@@ -34,7 +34,7 @@ class _NewUserState extends State<NewUser> {
         Navigator.of(context).pop();
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => Hub(username)),
+          MaterialPageRoute(builder: (context) => PlanetDatabase(username)),
         );
       }
     } else {

@@ -987,3 +987,6 @@ build/app/intermediates/incremental/debug-mergeJavaRes/zip-cache/+4oeuM05KvHkB7A
 .dart_tool/flutter_build/08e10aa51101d08c29fb0ac1d8f02c93/debug_android_application.stamp
 .dart_tool/flutter_build/08e10aa51101d08c29fb0ac1d8f02c93/app.dill
 .dart_tool/flutter_build/08e10aa51101d08c29fb0ac1d8f02c93/.filecache
+build/app/intermediates/compressed_assets/debug/out/assets/flutter_assets/assets/kepler_large.png.jar
+build/app/intermediates/compressed_assets/debug/out/assets/flutter_assets/assets/kepler_medium.png.jar
+build/app/intermediates/compressed_assets/debug/out/assets/flutter_assets/assets/kepler_small.png.jar
