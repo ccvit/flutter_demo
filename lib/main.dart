@@ -3,7 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 
 import 'dialogs/new_user_dialog.dart';
-import 'hub_screen.dart';
+import 'planet_database_screen.dart';
 import 'util.dart';
 
 void main() {

@@ -11,25 +11,25 @@ class PlanetDatabase extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
     // ignore: no_logic_in_create_state
-    return _Hub(username);
+    return _PlanetDatabase(username);
   }
 }
 
-class _Hub extends State<PlanetDatabase> {
+class _PlanetDatabase extends State<PlanetDatabase> {
 
   final String username;
   bool loadingPlanetData = true;
   // Full list of planets
-  List<Planet>? planetsList = [];
+  List<Planet> planetsList = [];
   // List of planets to display.
-  List<Planet>? planetsListToDisplay = [];
+  List<Planet> planetsListToDisplay = [];
   final TextEditingController _searchController = TextEditingController();
-  _Hub(this.username);
+  _PlanetDatabase(this.username);
 
   retrievePlanetData() async {
     KeplerApi keplerApi = KeplerApi();
     planetsList = await keplerApi.getDataOfAllPlanets();
-    planetsListToDisplay = List.from(planetsList!);
+    planetsListToDisplay = List.from(planetsList);
     loadingPlanetData = false;
     setState((){});
   }
@@ -42,11 +42,11 @@ class _Hub extends State<PlanetDatabase> {
   }
 
   doKeywordPlanetSearch(String searchKey) async {
-    planetsListToDisplay?.clear();
-    for (Planet planet in planetsList!) {
+    planetsListToDisplay.clear();
+    for (Planet planet in planetsList) {
       String planetName = planet.keplerName.toLowerCase();
       if (planetName.contains(searchKey.toLowerCase())) {
-        planetsListToDisplay?.add(planet);
+        planetsListToDisplay.add(planet);
       }
     }
     setState(() {
@@ -123,7 +123,7 @@ class _Hub extends State<PlanetDatabase> {
   }
 
   Widget planetItemBuilder(BuildContext context, pos) {
-    return buildPlanetRow(planetsListToDisplay![pos]);
+    return buildPlanetRow(planetsListToDisplay[pos]);
   }
 
   Widget planetSeparatorBuilder(BuildContext context, pos) {
@@ -131,13 +131,13 @@ class _Hub extends State<PlanetDatabase> {
   }
 
   Widget buildPlanetDataList() {
-    if (planetsListToDisplay!.isEmpty) {
+    if (planetsListToDisplay.isEmpty) {
       return const Center(child: Text("No results"),);
     } else {
       return ListView.separated(
           itemBuilder: planetItemBuilder,
           separatorBuilder: planetSeparatorBuilder,
-          itemCount: planetsListToDisplay!.length
+          itemCount: planetsListToDisplay.length
       );
     }
   }
