@@ -9,10 +9,15 @@ enum RegisterType {succeeded, userExists, passwordFail}
 class LoginBloc extends Bloc<BlocEvent, LoginType> {
   LoginBloc() : super(LoginType.unknown) {
     // make all of the events here
-    on<DoLogin>((event, emit) {
-      print("running");
+    on<DoLogin>((event, emit) async {
       DatabaseProvider provider = DatabaseProvider();
-      provider.checkLogin(username: event.username, password: event.password);
+      LoginType loginType = await provider.checkLogin(username: event.username, password: event.password);
+      emit(loginType);
     });
   }
+
+  dispose() {
+    close();
+  }
+
 }

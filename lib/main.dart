@@ -20,17 +20,24 @@ void main() {
 class FlutterDemo extends StatelessWidget {
   const FlutterDemo({Key? key}) : super(key: key);
 
+  static Route route() {
+    return MaterialPageRoute<void>(builder: (_) => const FlutterDemo());
+  }
+
+  // Nav keys
+  static final navigatorKey = GlobalKey<NavigatorState>();
+  static NavigatorState get navigator => navigatorKey.currentState!;
+
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: BlocProvider<LoginBloc>(
-        create: (_) => LoginBloc(),
-        child:  const MyHomePage(title: 'My Demo App!'),
-      ),
+      home: const MyHomePage(title: 'My Demo App!'),
     );
   }
 }
@@ -53,43 +60,23 @@ class _MyHomePageState extends State<MyHomePage> {
       decoration: TextDecoration.underline
   );
   final TextStyle normalStyle = const TextStyle(color: Colors.grey);
-  LoginType? loginAttempt;
+  final LoginBloc _loginBloc = LoginBloc();
+  LoginType? _loginAttempt;
 
   void doLogin(BuildContext context) async {
     String username = _usernameController.value.text;
     String password = _passwordController.value.text;
-    if (username.trim() != "" && password.trim() != "") {
-      DoLogin login = DoLogin(username, password);
-      context.read<LoginBloc>().add(login);
-      // DatabaseProvider provider = DatabaseProvider();
-      // loginAttempt = await provider.checkLogin(username: username, password: password);
-      // if (loginAttempt == LoginType.succeeded) {
-      //   Navigator.push(
-      //     context,
-      //     MaterialPageRoute(builder: (context) => PlanetDatabase(username)),
-      //   );
-      // }
-      // setState((){});
-    }
+    DoLogin login = DoLogin(username, password);
+    _loginBloc.add(login);
   }
 
   void signUpDialog(BuildContext context) {
-    setState((){
-      loginAttempt = LoginType.succeeded;
-      showDialog(
-          context: context,
-          builder: (context) {
-            return const NewUserDialog();
-          }
-      );
-    });
-  }
-
-  List<Widget> buildLoginChildren() {
-    List<Widget> loginChildren = [];
-    loginChildren.add(buildTextField(obscureText: false, hint: "Username", textEditingController: _usernameController));
-    return loginChildren;
-
+    showDialog(
+        context: context,
+        builder: (context) {
+          return const NewUserDialog();
+        }
+    );
   }
 
   Widget buildRegisterMessage() {
@@ -109,10 +96,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void buildErrorMessageIfNeeded(List<Widget> loginChildren) {
-    if (loginAttempt != LoginType.succeeded) {
-      if (loginAttempt == LoginType.passwordFail) {
+    if (_loginAttempt != LoginType.succeeded) {
+      if (_loginAttempt == LoginType.passwordFail) {
         loginChildren.add(const Text("Incorrect Password", style: errorStyle));
-      } else if (loginAttempt == LoginType.usernameFail){
+      } else if (_loginAttempt == LoginType.usernameFail){
         loginChildren.add(const Text("User not found", style: errorStyle));
       }
     }
@@ -136,19 +123,24 @@ class _MyHomePageState extends State<MyHomePage> {
     return Padding(
         padding: const EdgeInsets.only(top: 10.0),
         child: buildTextField(
-            obscureText: true,
-            hint: "Password",
-            textEditingController: _passwordController)
+          obscureText: true,
+          hint: "Password",
+          textEditingController: _passwordController
+      )
     );
   }
 
-  blocListener(BuildContext context, dynamic loginType) {
-    print("listener firing $loginType");
+  checkLogin(BuildContext context, LoginType loginAttempt) {
+    _loginAttempt = loginAttempt;
+    if (loginAttempt == LoginType.succeeded) {
+      FlutterDemo.navigator.pushAndRemoveUntil<void>(
+        PlanetDatabase.route(),
+            (route) => false,
+      );
+    }
   }
 
-  @override
-  Widget build(BuildContext context) {
-
+  Widget buildLoginChildren(BuildContext context, LoginType loginAttempt) {
     // Base children. Will always show.
     List<Widget> loginChildren = [
       buildTextField(hint: "Username", textEditingController: _usernameController, obscureText: false),
@@ -158,29 +150,37 @@ class _MyHomePageState extends State<MyHomePage> {
     ];
     buildErrorMessageIfNeeded(loginChildren);
 
+    return Center(
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: loginChildren,
+          ),
+        ));
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
       body: BlocListener<LoginBloc, LoginType>(
-        bloc: LoginBloc(),
-        listener: blocListener,
-        child: Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: loginChildren,
-              ),
-            )),
+        bloc: _loginBloc,
+        listener: checkLogin,
+        child: BlocBuilder<LoginBloc, LoginType>(
+          bloc: _loginBloc,
+          builder: buildLoginChildren,
+        ),
       )
     );
   }
 
   @override 
   void dispose() {
-    //_authenticationBloc.dispose();
+    _loginBloc.dispose();
     super.dispose();
   }
 }

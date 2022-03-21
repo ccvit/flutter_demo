@@ -20,6 +20,9 @@ class _NewUserDialogState extends State<NewUserDialog> {
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextStyle errorStyle = const TextStyle(color: Colors.red);
 
+  final _navigatorKey = GlobalKey<NavigatorState>();
+  NavigatorState get _navigator => _navigatorKey.currentState!;
+
   RegisterType? registerType;
   submit() async {
     String username = _usernameController.value.text;
@@ -33,10 +36,11 @@ class _NewUserDialogState extends State<NewUserDialog> {
       );
       if (registerType == RegisterType.succeeded) {
         Navigator.of(context).pop();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PlanetDatabase(username)),
+        _navigator.pushAndRemoveUntil<void>(
+          PlanetDatabase.route(),
+              (route) => false,
         );
+
       }
     } else {
       registerType = RegisterType.passwordFail;
@@ -54,19 +58,19 @@ class _NewUserDialogState extends State<NewUserDialog> {
     // Base children. will always appear
     List<Widget> registerChildren = [
       buildTextField(
-          obscureText: false,
-          hint: "Username",
-          textEditingController: _usernameController
+        obscureText: false,
+        hint: "Username",
+        textEditingController: _usernameController
       ),
       buildTextField(
-          obscureText: true,
-          hint: "Password",
-          textEditingController: _passwordController
+        obscureText: true,
+        hint: "Password",
+        textEditingController: _passwordController
       ),
       buildTextField(
-          obscureText: true,
-          hint: "Confirm password",
-          textEditingController: _confirmPasswordController
+        obscureText: true,
+        hint: "Confirm password",
+        textEditingController: _confirmPasswordController
       ),
       Padding(
         padding: const EdgeInsets.only(top: 10.0),

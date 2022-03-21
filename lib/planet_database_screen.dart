@@ -4,27 +4,26 @@ import 'package:flutter/material.dart';
 import 'database/planet.dart';
 
 class PlanetDatabase extends StatefulWidget {
-  final String username;
-
-  const PlanetDatabase(this.username, {Key? key}) : super(key: key);
-
+  const PlanetDatabase({Key? key}) : super(key: key);
+  static Route route() {
+    return MaterialPageRoute<void>(builder: (_) => const PlanetDatabase());
+  }
   @override
   State<StatefulWidget> createState() {
     // ignore: no_logic_in_create_state
-    return _PlanetDatabase(username);
+    return _PlanetDatabase();
   }
 }
 
 class _PlanetDatabase extends State<PlanetDatabase> {
 
-  final String username;
   bool loadingPlanetData = true;
   // Full list of planets
   List<Planet> planetsList = [];
   // List of planets to display.
   List<Planet> planetsListToDisplay = [];
   final TextEditingController _searchController = TextEditingController();
-  _PlanetDatabase(this.username);
+  _PlanetDatabase();
 
   retrievePlanetData() async {
     KeplerApi keplerApi = KeplerApi();
@@ -108,7 +107,7 @@ class _PlanetDatabase extends State<PlanetDatabase> {
 
     return alignColumnWidget;
   }
-  
+
   Widget buildPlanetRow(Planet planet) {
     // added theme to removed expanded divider.
     return Theme(
