@@ -24,15 +24,10 @@ class FlutterDemo extends StatelessWidget {
     return MaterialPageRoute<void>(builder: (_) => const FlutterDemo());
   }
 
-  // Nav keys
-  static final navigatorKey = GlobalKey<NavigatorState>();
-  static NavigatorState get navigator => navigatorKey.currentState!;
-
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      navigatorKey: navigatorKey,
       title: 'Flutter Demo',
       theme: ThemeData(
         primarySwatch: Colors.blue,
@@ -133,10 +128,7 @@ class _MyHomePageState extends State<MyHomePage> {
   checkLogin(BuildContext context, LoginType loginAttempt) {
     _loginAttempt = loginAttempt;
     if (loginAttempt == LoginType.succeeded) {
-      FlutterDemo.navigator.pushAndRemoveUntil<void>(
-        PlanetDatabase.route(),
-            (route) => false,
-      );
+      Navigator.of(context).push(PlanetDatabase.route());
     }
   }
 
@@ -180,7 +172,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   @override 
   void dispose() {
-    _loginBloc.dispose();
+    _loginBloc.close();
     super.dispose();
   }
 }

@@ -11,13 +11,17 @@ class LoginBloc extends Bloc<BlocEvent, LoginType> {
     // make all of the events here
     on<DoLogin>((event, emit) async {
       DatabaseProvider provider = DatabaseProvider();
-      LoginType loginType = await provider.checkLogin(username: event.username, password: event.password);
+      LoginType loginType = await provider.checkLogin(
+          username: event.username,
+          password: event.password
+      );
       emit(loginType);
     });
-  }
 
-  dispose() {
-    close();
+    on<ResetLogin>((event, emit) {
+      emit(LoginType.unknown);
+    });
+
   }
 
 }

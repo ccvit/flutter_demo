@@ -34,11 +34,7 @@ class _NewUserDialogState extends State<NewUserDialog> {
       );
       if (registerType == RegisterType.succeeded) {
         Navigator.of(context).pop();
-        FlutterDemo.navigator.pushAndRemoveUntil<void>(
-          PlanetDatabase.route(),
-              (route) => false,
-        );
-
+        Navigator.of(context).push<void>(PlanetDatabase.route(),);
       }
     } else {
       registerType = RegisterType.passwordFail;

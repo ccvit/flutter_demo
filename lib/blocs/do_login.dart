@@ -6,3 +6,7 @@ class DoLogin extends BlocEvent {
 
   DoLogin(this.username, this.password);
 }
+
+class ResetLogin extends BlocEvent {
+
+}
