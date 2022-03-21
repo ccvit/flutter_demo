@@ -2,6 +2,7 @@ import 'package:example_cpl/database/db.dart';
 import 'package:flutter/material.dart';
 
 import '../blocs/login_bloc.dart';
+import '../main.dart';
 import '../planet_database_screen.dart';
 import '../util.dart';
 
@@ -20,9 +21,6 @@ class _NewUserDialogState extends State<NewUserDialog> {
   final TextEditingController _confirmPasswordController = TextEditingController();
   final TextStyle errorStyle = const TextStyle(color: Colors.red);
 
-  final _navigatorKey = GlobalKey<NavigatorState>();
-  NavigatorState get _navigator => _navigatorKey.currentState!;
-
   RegisterType? registerType;
   submit() async {
     String username = _usernameController.value.text;
@@ -36,7 +34,7 @@ class _NewUserDialogState extends State<NewUserDialog> {
       );
       if (registerType == RegisterType.succeeded) {
         Navigator.of(context).pop();
-        _navigator.pushAndRemoveUntil<void>(
+        FlutterDemo.navigator.pushAndRemoveUntil<void>(
           PlanetDatabase.route(),
               (route) => false,
         );
