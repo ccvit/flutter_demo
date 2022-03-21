@@ -7,6 +7,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../blocs/login_bloc.dart';
+
 class DatabaseProvider {
   static Database? _database;
 

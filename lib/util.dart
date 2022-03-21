@@ -1,11 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-
-// === enums ===
-enum LoginType {succeeded, passwordFail, usernameFail}
-enum RegisterType {succeeded, userExists, passwordFail}
-
 // == styles ==
 const TextStyle errorStyle = TextStyle(color: Colors.red);
 

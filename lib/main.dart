@@ -1,19 +1,23 @@
 import 'package:example_cpl/database/db.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'blocs/login_bloc.dart';
 import 'dialogs/new_user_dialog.dart';
 import 'planet_database_screen.dart';
 import 'util.dart';
 
 void main() {
+  // initialize database
   DatabaseProvider provider = DatabaseProvider();
   provider.initDb();
-  runApp(const MyApp());
+
+  runApp(const FlutterDemo());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class FlutterDemo extends StatelessWidget {
+  const FlutterDemo({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +26,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'My Demo App!'),
+      home: BlocProvider<NewBloc>(
+        create: (_) => NewBloc(),
+        child:  const MyHomePage(title: 'My Demo App!'),
+      ),
     );
   }
 }
