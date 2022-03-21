@@ -6,10 +6,11 @@ import 'do_login.dart';
 enum LoginType {succeeded, passwordFail, usernameFail, unknown}
 enum RegisterType {succeeded, userExists, passwordFail}
 
-class NewBloc extends Bloc<BlocEvent, Map<String, dynamic>> {
-  NewBloc() : super({}) {
+class LoginBloc extends Bloc<BlocEvent, LoginType> {
+  LoginBloc() : super(LoginType.unknown) {
     // make all of the events here
     on<DoLogin>((event, emit) {
+      print("running");
       DatabaseProvider provider = DatabaseProvider();
       provider.checkLogin(username: event.username, password: event.password);
     });

@@ -5,14 +5,14 @@ import '../blocs/login_bloc.dart';
 import '../planet_database_screen.dart';
 import '../util.dart';
 
-class NewUser extends StatefulWidget {
-  const NewUser({Key? key}) : super(key: key);
+class NewUserDialog extends StatefulWidget {
+  const NewUserDialog({Key? key}) : super(key: key);
 
   @override
-  _NewUserState createState() => _NewUserState();
+  _NewUserDialogState createState() => _NewUserDialogState();
 }
 
-class _NewUserState extends State<NewUser> {
+class _NewUserDialogState extends State<NewUserDialog> {
 
   // credential controllers
   final TextEditingController _usernameController = TextEditingController();

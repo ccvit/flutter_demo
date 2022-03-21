@@ -1,3 +1,4 @@
+import 'package:example_cpl/blocs/do_login.dart';
 import 'package:example_cpl/database/db.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -26,8 +27,8 @@ class FlutterDemo extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: BlocProvider<NewBloc>(
-        create: (_) => NewBloc(),
+      home: BlocProvider<LoginBloc>(
+        create: (_) => LoginBloc(),
         child:  const MyHomePage(title: 'My Demo App!'),
       ),
     );
@@ -57,17 +58,18 @@ class _MyHomePageState extends State<MyHomePage> {
   void doLogin(BuildContext context) async {
     String username = _usernameController.value.text;
     String password = _passwordController.value.text;
-
-    if (username.trim() != "" && password.trim() != ""){
-      DatabaseProvider provider = DatabaseProvider();
-      loginAttempt = await provider.checkLogin(username: username, password: password);
-      if (loginAttempt == LoginType.succeeded) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PlanetDatabase(username)),
-        );
-      }
-      setState((){});
+    if (username.trim() != "" && password.trim() != "") {
+      DoLogin login = DoLogin(username, password);
+      context.read<LoginBloc>().add(login);
+      // DatabaseProvider provider = DatabaseProvider();
+      // loginAttempt = await provider.checkLogin(username: username, password: password);
+      // if (loginAttempt == LoginType.succeeded) {
+      //   Navigator.push(
+      //     context,
+      //     MaterialPageRoute(builder: (context) => PlanetDatabase(username)),
+      //   );
+      // }
+      // setState((){});
     }
   }
 
@@ -77,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
       showDialog(
           context: context,
           builder: (context) {
-            return const NewUser();
+            return const NewUserDialog();
           }
       );
     });
@@ -140,6 +142,10 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
+  blocListener(BuildContext context, dynamic loginType) {
+    print("listener firing $loginType");
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -156,18 +162,22 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: Center(
-        child: ConstrainedBox(
-          constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: loginChildren,
-          ),
-        ),
+      body: BlocListener<LoginBloc, LoginType>(
+        bloc: LoginBloc(),
+        listener: blocListener,
+        child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: loginChildren,
+              ),
+            )),
       )
     );
   }
+
   @override 
   void dispose() {
     //_authenticationBloc.dispose();
