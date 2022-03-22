@@ -95,7 +95,7 @@ class _NewUserDialogState extends State<NewUserDialog> {
     ];
     addErrorMessageIfNeeded(children, registerAttempt);
 
-    return Column(children: children);
+    return Column(mainAxisSize: MainAxisSize.min, children: children);
   }
 
   @override
