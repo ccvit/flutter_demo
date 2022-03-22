@@ -9,7 +9,7 @@ class KeplerBloc extends Bloc<BlocEvent, PlanetSearchHelper> {
   KeplerBloc() : super(PlanetSearchHelper(planets: [], status: SearchStatus.unknown)) {
     on<DoPlanetSearch>((event, emit) async {
       KeplerApi keplerApi = KeplerApi();
-      String searchTerm = event.searchTerm;
+      String searchTerm = event.searchTerm.toLowerCase();
       List<Planet> planetsToSearch = List.from(event.planets);
 
       // if planets are not stored locally yet then retrieve them
