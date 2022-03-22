@@ -22,10 +22,6 @@ void main() {
 class FlutterDemo extends StatelessWidget {
   const FlutterDemo({Key? key}) : super(key: key);
 
-  static Route route() {
-    return MaterialPageRoute<void>(builder: (_) => const FlutterDemo());
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
