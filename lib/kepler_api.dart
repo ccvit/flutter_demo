@@ -15,7 +15,6 @@ class KeplerApi {
     // doing request
     Uri url = Uri.https(_baseAddress, _unencodedPath, params);
     http.Response requestResults = await http.get(url, headers: _headers);
-
     List<Planet> planets = [];
 
     // parsing results to json
@@ -51,17 +50,16 @@ class KeplerApi {
     return planets;
   }
 
-  Future<List<Planet>> getDataOfSearchedPlanets(String planetName) async {
+  Future<List<Planet>> getDataOfLocalPlanets(String searchKey, List<Planet> planets) async {
+    List<Planet> newPlanets = [];
 
-    // params to search in API
-    Map<String, String> params = {
-      "table" : "cumulative",
-      "where" : "kepler_name like '$planetName'",
-      "format" : "json",
-    };
+    for (Planet planet in planets) {
+      String name = planet.keplerName.toLowerCase();
+      if (name.contains(searchKey)) {
+        newPlanets.add(planet);
+      }
+    }
 
-    List<Planet> planets = await _doHttpsRequest(params);
-    return planets;
+    return newPlanets;
   }
-
 }

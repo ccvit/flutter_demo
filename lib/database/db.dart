@@ -8,6 +8,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../blocs/login_bloc.dart';
+import '../blocs/registration_bloc.dart';
 
 class DatabaseProvider {
   static Database? _database;

@@ -4,24 +4,18 @@ import 'bloc_event.dart';
 import 'do_login.dart';
 
 enum LoginType {succeeded, passwordFail, usernameFail, unknown}
-enum RegisterType {succeeded, userExists, passwordFail}
 
 class LoginBloc extends Bloc<BlocEvent, LoginType> {
   LoginBloc() : super(LoginType.unknown) {
-    // make all of the events here
     on<DoLogin>((event, emit) async {
       DatabaseProvider provider = DatabaseProvider();
       LoginType loginType = await provider.checkLogin(
           username: event.username,
           password: event.password
       );
+
+      event.loginTypeController.add(loginType);
       emit(loginType);
     });
-
-    on<ResetLogin>((event, emit) {
-      emit(LoginType.unknown);
-    });
-
   }
-
 }

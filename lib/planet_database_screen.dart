@@ -1,6 +1,10 @@
+import 'package:example_cpl/blocs/kepler_bloc.dart';
+import 'package:example_cpl/helpers/planet_search_helper.dart';
 import 'package:example_cpl/kepler_api.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'blocs/do_planet_search.dart';
 import 'database/planet.dart';
 
 class PlanetDatabase extends StatefulWidget {
@@ -19,38 +23,20 @@ class _PlanetDatabase extends State<PlanetDatabase> {
 
   bool loadingPlanetData = true;
   // Full list of planets
-  List<Planet> planetsList = [];
-  // List of planets to display.
-  List<Planet> planetsListToDisplay = [];
   final TextEditingController _searchController = TextEditingController();
+  final KeplerBloc _keplerBloc = KeplerBloc();
+  List<Planet> fullPlanetsList = [];
+
   _PlanetDatabase();
 
   retrievePlanetData() async {
-    KeplerApi keplerApi = KeplerApi();
-    planetsList = await keplerApi.getDataOfAllPlanets();
-    planetsListToDisplay = List.from(planetsList);
-    loadingPlanetData = false;
-    setState((){});
-  }
-
-  initKeywordPlanetSearch(String searchKey) {
-    setState(() {
-      loadingPlanetData = true;
-      doKeywordPlanetSearch(searchKey);
-    });
+    DoPlanetSearch doPlanetSearch = DoPlanetSearch(searchTerm: "", planets: []);
+    _keplerBloc.add(doPlanetSearch);
   }
 
   doKeywordPlanetSearch(String searchKey) async {
-    planetsListToDisplay.clear();
-    for (Planet planet in planetsList) {
-      String planetName = planet.keplerName.toLowerCase();
-      if (planetName.contains(searchKey.toLowerCase())) {
-        planetsListToDisplay.add(planet);
-      }
-    }
-    setState(() {
-      loadingPlanetData = false;
-    });
+    DoPlanetSearch doPlanetSearch = DoPlanetSearch(searchTerm: searchKey, planets: fullPlanetsList);
+    _keplerBloc.add(doPlanetSearch);
   }
 
   Widget buildSearchTextBox() {
@@ -61,7 +47,7 @@ class _PlanetDatabase extends State<PlanetDatabase> {
           border: UnderlineInputBorder(),
           hintText: "Search ...",
         ),
-      onSubmitted: initKeywordPlanetSearch,
+      onSubmitted: doKeywordPlanetSearch,
     );
   }
 
@@ -121,22 +107,21 @@ class _PlanetDatabase extends State<PlanetDatabase> {
     );
   }
 
-  Widget planetItemBuilder(BuildContext context, pos) {
-    return buildPlanetRow(planetsListToDisplay[pos]);
-  }
-
   Widget planetSeparatorBuilder(BuildContext context, pos) {
     return const Divider(color: Colors.grey,);
   }
 
-  Widget buildPlanetDataList() {
-    if (planetsListToDisplay.isEmpty) {
+  Widget buildPlanetDataList(List<Planet> planets) {
+    if (planets.isEmpty) {
       return const Center(child: Text("No results"),);
     } else {
       return ListView.separated(
-          itemBuilder: planetItemBuilder,
-          separatorBuilder: planetSeparatorBuilder,
-          itemCount: planetsListToDisplay.length
+        // putting itemBuilder function in here. No other way to show really.
+        itemBuilder: (context, pos) {
+          return buildPlanetRow(planets[pos]);
+        },
+        separatorBuilder: planetSeparatorBuilder,
+        itemCount: planets.length
       );
     }
   }
@@ -148,6 +133,31 @@ class _PlanetDatabase extends State<PlanetDatabase> {
         Center(child: CircularProgressIndicator(),),
       ],
     );
+  }
+
+  Widget buildPlanetSearchChildren(BuildContext context, PlanetSearchHelper helper) {
+    SearchStatus status = helper.status;
+    List<Planet> planets = helper.planets;
+
+    Widget centerChild;
+    if (status == SearchStatus.complete) {
+      centerChild = buildPlanetDataList(planets);
+    } else {
+      centerChild = buildLoadingWidget();
+    }
+    return Center(
+        child: centerChild,
+      );
+    }
+
+  updatePlanetListIfNeeded(BuildContext context, PlanetSearchHelper helper) {
+    List<Planet> newPlanetsList = helper.planets;
+
+    // Only change the list if it is a new and different list than previously
+    if (newPlanetsList.length > fullPlanetsList.length) {
+      // I want to make a copy not just reassign.
+      fullPlanetsList = List.from(newPlanetsList);
+    }
   }
 
   AppBar buildAppBar() {
@@ -167,19 +177,23 @@ class _PlanetDatabase extends State<PlanetDatabase> {
   @override
   Widget build(BuildContext context) {
 
-    Widget centerChild;
-    if (loadingPlanetData) {
-      centerChild = buildLoadingWidget();
-    } else {
-      centerChild = buildPlanetDataList();
-    }
-
     return Scaffold(
       appBar: buildAppBar(),
-      body: Center(
-        child: centerChild,
+      body: BlocListener<KeplerBloc, PlanetSearchHelper>(
+        listener:updatePlanetListIfNeeded ,
+        bloc: _keplerBloc,
+        child: BlocBuilder<KeplerBloc, PlanetSearchHelper>(
+          builder: buildPlanetSearchChildren,
+          bloc: _keplerBloc,
+        ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _keplerBloc.close();
+    super.dispose();
   }
 
 }

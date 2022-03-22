@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:example_cpl/blocs/do_login.dart';
 import 'package:example_cpl/database/db.dart';
 import 'package:flutter/gestures.dart';
@@ -24,7 +26,6 @@ class FlutterDemo extends StatelessWidget {
     return MaterialPageRoute<void>(builder: (_) => const FlutterDemo());
   }
 
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -47,7 +48,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  //final AuthenticationBloc _authenticationBloc = AuthenticationBloc();
+
+  // themes
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextStyle linkStyle = const TextStyle(
@@ -55,13 +57,19 @@ class _MyHomePageState extends State<MyHomePage> {
       decoration: TextDecoration.underline
   );
   final TextStyle normalStyle = const TextStyle(color: Colors.grey);
+
+  // BLoC
   final LoginBloc _loginBloc = LoginBloc();
-  LoginType? _loginAttempt;
+
+  //stream variables
+  // not using BlocListener. sometimes the login is not the same.
+  final StreamController<LoginType> _loginTypeController = StreamController<LoginType>();
+  late StreamSubscription<LoginType> _loginSubscription;
 
   void doLogin(BuildContext context) async {
     String username = _usernameController.value.text;
     String password = _passwordController.value.text;
-    DoLogin login = DoLogin(username, password);
+    DoLogin login = DoLogin(username, password, _loginTypeController);
     _loginBloc.add(login);
   }
 
@@ -90,11 +98,11 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  void buildErrorMessageIfNeeded(List<Widget> loginChildren) {
-    if (_loginAttempt != LoginType.succeeded) {
-      if (_loginAttempt == LoginType.passwordFail) {
+  void buildErrorMessageIfNeeded(List<Widget> loginChildren, LoginType loginAttempt) {
+    if (loginAttempt != LoginType.succeeded) {
+      if (loginAttempt == LoginType.passwordFail) {
         loginChildren.add(const Text("Incorrect Password", style: errorStyle));
-      } else if (_loginAttempt == LoginType.usernameFail){
+      } else if (loginAttempt == LoginType.usernameFail){
         loginChildren.add(const Text("User not found", style: errorStyle));
       }
     }
@@ -125,13 +133,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  checkLogin(BuildContext context, LoginType loginAttempt) {
-    _loginAttempt = loginAttempt;
-    if (loginAttempt == LoginType.succeeded) {
-      Navigator.of(context).push(PlanetDatabase.route());
-    }
-  }
-
   Widget buildLoginChildren(BuildContext context, LoginType loginAttempt) {
     // Base children. Will always show.
     List<Widget> loginChildren = [
@@ -140,7 +141,7 @@ class _MyHomePageState extends State<MyHomePage> {
       buildLoginButton(),
       buildRegisterMessage()
     ];
-    buildErrorMessageIfNeeded(loginChildren);
+    buildErrorMessageIfNeeded(loginChildren, loginAttempt);
 
     return Center(
         child: ConstrainedBox(
@@ -154,18 +155,25 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   @override
+  void initState() {
+    _loginSubscription = _loginTypeController.stream.listen((event) {
+      if (event == LoginType.succeeded) {
+        Navigator.of(context).push(PlanetDatabase.route());
+      }
+    });
+
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
-      body: BlocListener<LoginBloc, LoginType>(
+      body: BlocBuilder<LoginBloc, LoginType>(
         bloc: _loginBloc,
-        listener: checkLogin,
-        child: BlocBuilder<LoginBloc, LoginType>(
-          bloc: _loginBloc,
-          builder: buildLoginChildren,
-        ),
+        builder: buildLoginChildren,
       )
     );
   }
@@ -173,6 +181,8 @@ class _MyHomePageState extends State<MyHomePage> {
   @override 
   void dispose() {
     _loginBloc.close();
+    _loginSubscription.cancel();
+    _loginTypeController.close();
     super.dispose();
   }
 }

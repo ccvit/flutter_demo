@@ -1,12 +1,11 @@
+import 'dart:async';
+
 import 'bloc_event.dart';
+import 'login_bloc.dart';
 
 class DoLogin extends BlocEvent {
   final String username;
   final String password;
-
-  DoLogin(this.username, this.password);
-}
-
-class ResetLogin extends BlocEvent {
-
+  final StreamController<LoginType> loginTypeController;
+  DoLogin(this.username, this.password, this.loginTypeController);
 }
