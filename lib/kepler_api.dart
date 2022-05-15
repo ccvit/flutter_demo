@@ -12,12 +12,10 @@ class KeplerApi {
 
   Future<List<Planet>> _doHttpsRequest(Map<String, String> params) async {
 
-    // doing request
     Uri url = Uri.https(_baseAddress, _unencodedPath, params);
     http.Response requestResults = await http.get(url, headers: _headers);
     List<Planet> planets = [];
 
-    // parsing results to json
     String data = requestResults.body;
     List<dynamic> rawDataList = jsonDecode(data);
     for (dynamic rawData in rawDataList) {

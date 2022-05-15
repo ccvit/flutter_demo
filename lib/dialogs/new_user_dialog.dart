@@ -1,12 +1,12 @@
 import 'package:example_cpl/blocs/do_registration.dart';
-import 'package:example_cpl/database/db.dart';
+import 'package:example_cpl/widgets/dialog_bottom_row.dart';
+import 'package:example_cpl/widgets/password_text_field.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../blocs/login_bloc.dart';
 import '../blocs/registration_bloc.dart';
 import '../planet_database_screen.dart';
-import '../util.dart';
+import '../widgets/username_text_field.dart';
 
 class NewUserDialog extends StatefulWidget {
   const NewUserDialog({Key? key}) : super(key: key);
@@ -17,11 +17,9 @@ class NewUserDialog extends StatefulWidget {
 
 class _NewUserDialogState extends State<NewUserDialog> {
 
-  // credential controllers
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextStyle errorStyle = const TextStyle(color: Colors.red);
   final RegisterBloc _registerBloc = RegisterBloc();
 
   submit() async {
@@ -44,20 +42,8 @@ class _NewUserDialogState extends State<NewUserDialog> {
     }
   }
 
-  Widget buildDialogBottomRow() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          ElevatedButton(onPressed: cancel, child: const Text("Cancel")),
-          ElevatedButton(onPressed: submit, child: const Text("Submit")),
-        ],
-      ),
-    );
-  }
-
   addErrorMessageIfNeeded(List<Widget> children, RegisterType registerAttempt) {
+    TextStyle errorStyle = const TextStyle(color: Colors.red);
     if (registerAttempt == RegisterType.passwordFail) {
       children.add(Text("Passwords do not match", style: errorStyle,));
     } else if (registerAttempt == RegisterType.userExists) {
@@ -65,33 +51,14 @@ class _NewUserDialogState extends State<NewUserDialog> {
     }
   }
 
+  // TODO: Study polymorphism further to change buildRegistrationChildren to a class
   Widget buildRegistrationChildren(BuildContext context, RegisterType registerAttempt) {
-    Widget usernameTextBox = buildTextField(
-        obscureText: false,
-        hint: "Username",
-        textEditingController: _usernameController
-    );
-
-    Widget passwordTextBox = buildTextField(
-        obscureText: true,
-        hint: "Password",
-        textEditingController: _passwordController
-
-    );
-
-    Widget confirmPasswordTextBox = buildTextField(
-        obscureText: true,
-        hint: "Confirm password",
-        textEditingController: _confirmPasswordController
-    );
-
-    Widget dialogBottomRow = buildDialogBottomRow();
 
     List<Widget> children = [
-      usernameTextBox,
-      passwordTextBox,
-      confirmPasswordTextBox,
-      dialogBottomRow
+      UsernameTextField(textEditingController: _usernameController),
+      PasswordTextField(textEditingController: _passwordController, hintText: "Password"),
+      PasswordTextField(textEditingController: _confirmPasswordController, hintText: "Confirm Password"),
+      DialogBottomRow(cancel: cancel, submit: submit)
     ];
     addErrorMessageIfNeeded(children, registerAttempt);
 

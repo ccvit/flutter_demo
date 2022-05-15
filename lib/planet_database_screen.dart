@@ -1,6 +1,8 @@
 import 'package:example_cpl/blocs/kepler_bloc.dart';
 import 'package:example_cpl/helpers/planet_search_helper.dart';
-import 'package:example_cpl/kepler_api.dart';
+import 'package:example_cpl/widgets/loading_widget.dart';
+import 'package:example_cpl/widgets/planet_row.dart';
+import 'package:example_cpl/widgets/search_text_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -14,7 +16,6 @@ class PlanetDatabase extends StatefulWidget {
   }
   @override
   State<StatefulWidget> createState() {
-    // ignore: no_logic_in_create_state
     return _PlanetDatabase();
   }
 }
@@ -22,7 +23,6 @@ class PlanetDatabase extends StatefulWidget {
 class _PlanetDatabase extends State<PlanetDatabase> {
 
   bool loadingPlanetData = true;
-  // Full list of planets
   final TextEditingController _searchController = TextEditingController();
   final KeplerBloc _keplerBloc = KeplerBloc();
   List<Planet> fullPlanetsList = [];
@@ -39,74 +39,6 @@ class _PlanetDatabase extends State<PlanetDatabase> {
     _keplerBloc.add(doPlanetSearch);
   }
 
-  Widget buildSearchTextBox() {
-    return TextField(
-      autofocus: false,
-        controller: _searchController,
-        decoration: const InputDecoration(
-          border: UnderlineInputBorder(),
-          hintText: "Search ...",
-        ),
-      onSubmitted: doKeywordPlanetSearch,
-    );
-  }
-
-  Widget buildPlanetRowHeader(Planet planet) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Image.asset(planet.planetImage, height: 50.0),
-        Padding(
-          padding: const EdgeInsets.only(left: 10.0),
-          child: Text(planet.keplerName),
-        ),
-      ]
-    );
-  }
-
-  Widget buildPlanetChildren(Planet planet) {
-    String status = planet.planetStatus;
-    String radius = planet.planetRadius.toString();
-    String distanceFromStar = planet.distanceFromStar;
-    String planetTemperature = planet.planetTemperature;
-
-    Widget planetStatusWidget = Text("Status: $status");
-    Widget planetRadiusWidget = Text("Radius: $radius RE");
-    Widget distanceFromStarWidget = Text("Distance from star: $distanceFromStar pc");
-    Widget planetTemperatureWidget = Text("Temperature: $planetTemperature K");
-
-    // I want the children to start at the left, so adding cross Axis Alignment
-    Widget columnForChildren = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        planetStatusWidget,
-        planetRadiusWidget,
-        distanceFromStarWidget,
-        planetTemperatureWidget
-      ]
-    );
-
-    Widget alignColumnWidget = Align(
-      child: columnForChildren,
-      alignment: Alignment.topLeft
-    );
-
-    return alignColumnWidget;
-  }
-
-  Widget buildPlanetRow(Planet planet) {
-    // added theme to removed expanded divider.
-    return Theme(
-      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        title: buildPlanetRowHeader(planet),
-        childrenPadding: const EdgeInsets.all(10.0),
-        children: [buildPlanetChildren(planet)],
-
-      ),
-    );
-  }
-
   Widget planetSeparatorBuilder(BuildContext context, pos) {
     return const Divider(color: Colors.grey,);
   }
@@ -118,7 +50,7 @@ class _PlanetDatabase extends State<PlanetDatabase> {
       return ListView.separated(
         // putting itemBuilder function in here. No other way to show really.
         itemBuilder: (context, pos) {
-          return buildPlanetRow(planets[pos]);
+          return PlanetRow(planet: planets[pos],);
         },
         separatorBuilder: planetSeparatorBuilder,
         itemCount: planets.length
@@ -135,6 +67,7 @@ class _PlanetDatabase extends State<PlanetDatabase> {
     );
   }
 
+  // todo: see if there is a builder class I can use
   Widget buildPlanetSearchChildren(BuildContext context, PlanetSearchHelper helper) {
     SearchStatus status = helper.status;
     List<Planet> planets = helper.planets;
@@ -143,26 +76,29 @@ class _PlanetDatabase extends State<PlanetDatabase> {
     if (status == SearchStatus.complete) {
       centerChild = buildPlanetDataList(planets);
     } else {
-      centerChild = buildLoadingWidget();
+      centerChild = const LoadingWidget();
     }
     return Center(
         child: centerChild,
       );
-    }
+  }
+
+  // todo: boolean checks could be something like this?
+  bool searchResultsChanged(List<Planet> newPlanetsList) {
+    return newPlanetsList.length > fullPlanetsList.length;
+  }
 
   updatePlanetListIfNeeded(BuildContext context, PlanetSearchHelper helper) {
     List<Planet> newPlanetsList = helper.planets;
 
-    // Only change the list if it is a new and different list than previously
-    if (newPlanetsList.length > fullPlanetsList.length) {
-      // I want to make a copy not just reassign.
+    if (searchResultsChanged(newPlanetsList)) {
       fullPlanetsList = List.from(newPlanetsList);
     }
   }
 
   AppBar buildAppBar() {
     return AppBar(
-      title: buildSearchTextBox(),
+      title: SearchTextBox(doKeywordPlanetSearch: doKeywordPlanetSearch, searchController: _searchController),
       backgroundColor: Colors.white,
       iconTheme: const IconThemeData(color: Colors.black),
     );
@@ -180,7 +116,7 @@ class _PlanetDatabase extends State<PlanetDatabase> {
     return Scaffold(
       appBar: buildAppBar(),
       body: BlocListener<KeplerBloc, PlanetSearchHelper>(
-        listener:updatePlanetListIfNeeded ,
+        listener: updatePlanetListIfNeeded ,
         bloc: _keplerBloc,
         child: BlocBuilder<KeplerBloc, PlanetSearchHelper>(
           builder: buildPlanetSearchChildren,

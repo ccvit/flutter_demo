@@ -2,6 +2,10 @@ import 'dart:async';
 
 import 'package:example_cpl/blocs/do_login.dart';
 import 'package:example_cpl/database/db.dart';
+import 'package:example_cpl/widgets/login_button.dart';
+import 'package:example_cpl/widgets/password_text_field.dart';
+import 'package:example_cpl/widgets/register_message.dart';
+import 'package:example_cpl/widgets/username_text_field.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,7 +13,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'blocs/login_bloc.dart';
 import 'dialogs/new_user_dialog.dart';
 import 'planet_database_screen.dart';
-import 'util.dart';
 
 void main() {
   // initialize database
@@ -45,20 +48,12 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  // themes
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextStyle linkStyle = const TextStyle(
-      color: Colors.blue,
-      decoration: TextDecoration.underline
-  );
-  final TextStyle normalStyle = const TextStyle(color: Colors.grey);
 
-  // BLoC
   final LoginBloc _loginBloc = LoginBloc();
 
   //stream variables
-  // not using BlocListener. sometimes the login is not the same.
   final StreamController<LoginType> _loginTypeController = StreamController<LoginType>();
   late StreamSubscription<LoginType> _loginSubscription;
 
@@ -69,73 +64,22 @@ class _MyHomePageState extends State<MyHomePage> {
     _loginBloc.add(login);
   }
 
-  void signUpDialog(BuildContext context) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return const NewUserDialog();
-        }
-    );
-  }
-
-  Widget buildRegisterMessage() {
-    TapGestureRecognizer signUpClicked = TapGestureRecognizer();
-    signUpClicked.onTap = () => signUpDialog(context);
-
-    return RichText(
-        text: TextSpan(
-            style: normalStyle,
-            children: [
-              const TextSpan(text: "New user? "),
-              TextSpan(text: "Sign up", style: linkStyle, recognizer: signUpClicked),
-              const TextSpan(text: " today!")
-            ]
-        )
-    );
-  }
-
   void buildErrorMessageIfNeeded(List<Widget> loginChildren, LoginType loginAttempt) {
     if (loginAttempt != LoginType.succeeded) {
       if (loginAttempt == LoginType.passwordFail) {
-        loginChildren.add(const Text("Incorrect Password", style: errorStyle));
+        loginChildren.add(const Text("Incorrect Password", style: TextStyle(color: Colors.red)));
       } else if (loginAttempt == LoginType.usernameFail){
-        loginChildren.add(const Text("User not found", style: errorStyle));
+        loginChildren.add(const Text("User not found", style: TextStyle(color: Colors.red)));
       }
     }
   }
 
-  Widget buildLoginButton() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
-      child: Center(
-        child: ElevatedButton(
-            onPressed: (){
-              doLogin(context);
-            },
-            child: const Text("Login")
-        )
-      ),
-    );
-  }
-
-  Widget buildPasswordTextBox() {
-    return Padding(
-        padding: const EdgeInsets.only(top: 10.0),
-        child: buildTextField(
-          obscureText: true,
-          hint: "Password",
-          textEditingController: _passwordController
-      )
-    );
-  }
-
   Widget buildLoginChildren(BuildContext context, LoginType loginAttempt) {
-    // Base children. Will always show.
     List<Widget> loginChildren = [
-      buildTextField(hint: "Username", textEditingController: _usernameController, obscureText: false),
-      buildPasswordTextBox(),
-      buildLoginButton(),
-      buildRegisterMessage()
+      UsernameTextField(textEditingController: _usernameController),
+      PasswordTextField(textEditingController: _passwordController, hintText: "Password"),
+      LoginButton(onPressAction: doLogin,),
+      const RegisterMessage()
     ];
     buildErrorMessageIfNeeded(loginChildren, loginAttempt);
 
