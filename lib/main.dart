@@ -1,19 +1,29 @@
+import 'dart:async';
+
+import 'package:example_cpl/blocs/do_login.dart';
 import 'package:example_cpl/database/db.dart';
+import 'package:example_cpl/widgets/login_button.dart';
+import 'package:example_cpl/widgets/password_text_field.dart';
+import 'package:example_cpl/widgets/register_message.dart';
+import 'package:example_cpl/widgets/username_text_field.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'blocs/login_bloc.dart';
 import 'dialogs/new_user_dialog.dart';
 import 'planet_database_screen.dart';
-import 'util.dart';
 
 void main() {
+  // initialize database
   DatabaseProvider provider = DatabaseProvider();
   provider.initDb();
-  runApp(const MyApp());
+
+  runApp(const FlutterDemo());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+class FlutterDemo extends StatelessWidget {
+  const FlutterDemo({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -37,119 +47,43 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  //final AuthenticationBloc _authenticationBloc = AuthenticationBloc();
+
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextStyle linkStyle = const TextStyle(
-      color: Colors.blue,
-      decoration: TextDecoration.underline
-  );
-  final TextStyle normalStyle = const TextStyle(color: Colors.grey);
-  LoginType? loginAttempt;
+
+  final LoginBloc _loginBloc = LoginBloc();
+
+  //stream variables
+  final StreamController<LoginType> _loginTypeController = StreamController<LoginType>();
+  late StreamSubscription<LoginType> _loginSubscription;
 
   void doLogin(BuildContext context) async {
     String username = _usernameController.value.text;
     String password = _passwordController.value.text;
-
-    if (username.trim() != "" && password.trim() != ""){
-      DatabaseProvider provider = DatabaseProvider();
-      loginAttempt = await provider.checkLogin(username: username, password: password);
-      if (loginAttempt == LoginType.succeeded) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PlanetDatabase(username)),
-        );
-      }
-      setState((){});
-    }
+    DoLogin login = DoLogin(username, password, _loginTypeController);
+    _loginBloc.add(login);
   }
 
-  void signUpDialog(BuildContext context) {
-    setState((){
-      loginAttempt = LoginType.succeeded;
-      showDialog(
-          context: context,
-          builder: (context) {
-            return const NewUser();
-          }
-      );
-    });
-  }
-
-  List<Widget> buildLoginChildren() {
-    List<Widget> loginChildren = [];
-    loginChildren.add(buildTextField(obscureText: false, hint: "Username", textEditingController: _usernameController));
-    return loginChildren;
-
-  }
-
-  Widget buildRegisterMessage() {
-    TapGestureRecognizer signUpClicked = TapGestureRecognizer();
-    signUpClicked.onTap = () => signUpDialog(context);
-
-    return RichText(
-        text: TextSpan(
-            style: normalStyle,
-            children: [
-              const TextSpan(text: "New user? "),
-              TextSpan(text: "Sign up", style: linkStyle, recognizer: signUpClicked),
-              const TextSpan(text: " today!")
-            ]
-        )
-    );
-  }
-
-  void buildErrorMessageIfNeeded(List<Widget> loginChildren) {
+  void buildErrorMessageIfNeeded(List<Widget> loginChildren, LoginType loginAttempt) {
     if (loginAttempt != LoginType.succeeded) {
       if (loginAttempt == LoginType.passwordFail) {
-        loginChildren.add(const Text("Incorrect Password", style: errorStyle));
+        loginChildren.add(const Text("Incorrect Password", style: TextStyle(color: Colors.red)));
       } else if (loginAttempt == LoginType.usernameFail){
-        loginChildren.add(const Text("User not found", style: errorStyle));
+        loginChildren.add(const Text("User not found", style: TextStyle(color: Colors.red)));
       }
     }
   }
 
-  Widget buildLoginButton() {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10.0),
-      child: Center(
-        child: ElevatedButton(
-            onPressed: (){
-              doLogin(context);
-            },
-            child: const Text("Login")
-        )
-      ),
-    );
-  }
-
-  Widget buildPasswordTextBox() {
-    return Padding(
-        padding: const EdgeInsets.only(top: 10.0),
-        child: buildTextField(
-            obscureText: true,
-            hint: "Password",
-            textEditingController: _passwordController)
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-
-    // Base children. Will always show.
+  Widget buildLoginChildren(BuildContext context, LoginType loginAttempt) {
     List<Widget> loginChildren = [
-      buildTextField(hint: "Username", textEditingController: _usernameController, obscureText: false),
-      buildPasswordTextBox(),
-      buildLoginButton(),
-      buildRegisterMessage()
+      UsernameTextField(textEditingController: _usernameController),
+      PasswordTextField(textEditingController: _passwordController, hintText: "Password"),
+      LoginButton(onPressAction: doLogin,),
+      const RegisterMessage()
     ];
-    buildErrorMessageIfNeeded(loginChildren);
+    buildErrorMessageIfNeeded(loginChildren, loginAttempt);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
+    return Center(
         child: ConstrainedBox(
           constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width / 2),
           child: Column(
@@ -157,13 +91,38 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: loginChildren,
           ),
-        ),
+        ));
+  }
+
+  @override
+  void initState() {
+    _loginSubscription = _loginTypeController.stream.listen((event) {
+      if (event == LoginType.succeeded) {
+        Navigator.of(context).push(PlanetDatabase.route());
+      }
+    });
+
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.title),
+      ),
+      body: BlocBuilder<LoginBloc, LoginType>(
+        bloc: _loginBloc,
+        builder: buildLoginChildren,
       )
     );
   }
+
   @override 
   void dispose() {
-    //_authenticationBloc.dispose();
+    _loginBloc.close();
+    _loginSubscription.cancel();
+    _loginTypeController.close();
     super.dispose();
   }
 }

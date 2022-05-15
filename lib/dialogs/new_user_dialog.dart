@@ -1,99 +1,90 @@
-import 'package:example_cpl/database/db.dart';
+import 'package:example_cpl/blocs/do_registration.dart';
+import 'package:example_cpl/widgets/dialog_bottom_row.dart';
+import 'package:example_cpl/widgets/password_text_field.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../blocs/registration_bloc.dart';
 import '../planet_database_screen.dart';
-import '../util.dart';
+import '../widgets/username_text_field.dart';
 
-class NewUser extends StatefulWidget {
-  const NewUser({Key? key}) : super(key: key);
+class NewUserDialog extends StatefulWidget {
+  const NewUserDialog({Key? key}) : super(key: key);
 
   @override
-  _NewUserState createState() => _NewUserState();
+  _NewUserDialogState createState() => _NewUserDialogState();
 }
 
-class _NewUserState extends State<NewUser> {
+class _NewUserDialogState extends State<NewUserDialog> {
 
-  // credential controllers
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController = TextEditingController();
-  final TextStyle errorStyle = const TextStyle(color: Colors.red);
+  final RegisterBloc _registerBloc = RegisterBloc();
 
-  RegisterType? registerType;
   submit() async {
     String username = _usernameController.value.text;
     String password = _passwordController.value.text;
     String confirmPassword = _confirmPasswordController.value.text;
-    if (password == confirmPassword) {
-      DatabaseProvider provider = DatabaseProvider();
-      registerType = await provider.createUser(
-          username: username,
-          password: password
-      );
-      if (registerType == RegisterType.succeeded) {
-        Navigator.of(context).pop();
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => PlanetDatabase(username)),
-        );
-      }
-    } else {
-      registerType = RegisterType.passwordFail;
-    }
-    setState((){});
 
+    DoRegistration doRegistration = DoRegistration(username, password, confirmPassword);
+    _registerBloc.add(doRegistration);
   }
 
   cancel() {
     Navigator.of(context).pop();
   }
 
+  checkRegisterAttempt(BuildContext context, RegisterType registerAttempt) {
+    if (registerAttempt == RegisterType.succeeded) {
+      Navigator.of(context).pop();
+      Navigator.of(context).push<void>(PlanetDatabase.route(),);
+    }
+  }
+
+  addErrorMessageIfNeeded(List<Widget> children, RegisterType registerAttempt) {
+    TextStyle errorStyle = const TextStyle(color: Colors.red);
+    if (registerAttempt == RegisterType.passwordFail) {
+      children.add(Text("Passwords do not match", style: errorStyle,));
+    } else if (registerAttempt == RegisterType.userExists) {
+      children.add(Text("User already exists", style: errorStyle,));
+    }
+  }
+
+  // TODO: Study polymorphism further to change buildRegistrationChildren to a class
+  Widget buildRegistrationChildren(BuildContext context, RegisterType registerAttempt) {
+
+    List<Widget> children = [
+      UsernameTextField(textEditingController: _usernameController),
+      PasswordTextField(textEditingController: _passwordController, hintText: "Password"),
+      PasswordTextField(textEditingController: _confirmPasswordController, hintText: "Confirm Password"),
+      DialogBottomRow(cancel: cancel, submit: submit)
+    ];
+    addErrorMessageIfNeeded(children, registerAttempt);
+
+    return Column(mainAxisSize: MainAxisSize.min, children: children);
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Base children. will always appear
-    List<Widget> registerChildren = [
-      buildTextField(
-          obscureText: false,
-          hint: "Username",
-          textEditingController: _usernameController
-      ),
-      buildTextField(
-          obscureText: true,
-          hint: "Password",
-          textEditingController: _passwordController
-      ),
-      buildTextField(
-          obscureText: true,
-          hint: "Confirm password",
-          textEditingController: _confirmPasswordController
-      ),
-      Padding(
-        padding: const EdgeInsets.only(top: 10.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            ElevatedButton(onPressed: cancel, child: const Text("Cancel")),
-            ElevatedButton(onPressed: submit, child: const Text("Submit")),
-          ],
-        ),
-      )
-    ];
-
-    // error children
-    if (registerType == RegisterType.passwordFail) {
-      registerChildren.add(Text("Passwords do not match", style: errorStyle,));
-    } else if (registerType == RegisterType.userExists) {
-      registerChildren.add(Text("User already exists", style: errorStyle,));
-    }
-
     return Dialog(
       child: Padding(
         padding: const EdgeInsets.all(10.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: registerChildren
+        child: BlocListener<RegisterBloc, RegisterType>(
+          bloc: _registerBloc,
+          listener: checkRegisterAttempt,
+          child: BlocBuilder<RegisterBloc, RegisterType>(
+            bloc: _registerBloc,
+            builder: buildRegistrationChildren
+          ),
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _registerBloc.close();
+    super.dispose();
   }
 }

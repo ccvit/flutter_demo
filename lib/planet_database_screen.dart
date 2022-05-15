@@ -1,143 +1,58 @@
-import 'package:example_cpl/kepler_api.dart';
+import 'package:example_cpl/blocs/kepler_bloc.dart';
+import 'package:example_cpl/helpers/planet_search_helper.dart';
+import 'package:example_cpl/widgets/loading_widget.dart';
+import 'package:example_cpl/widgets/planet_row.dart';
+import 'package:example_cpl/widgets/search_text_box.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import 'blocs/do_planet_search.dart';
 import 'database/planet.dart';
 
 class PlanetDatabase extends StatefulWidget {
-  final String username;
-
-  const PlanetDatabase(this.username, {Key? key}) : super(key: key);
-
+  const PlanetDatabase({Key? key}) : super(key: key);
+  static Route route() {
+    return MaterialPageRoute<void>(builder: (_) => const PlanetDatabase());
+  }
   @override
   State<StatefulWidget> createState() {
-    // ignore: no_logic_in_create_state
-    return _PlanetDatabase(username);
+    return _PlanetDatabase();
   }
 }
 
 class _PlanetDatabase extends State<PlanetDatabase> {
 
-  final String username;
   bool loadingPlanetData = true;
-  // Full list of planets
-  List<Planet> planetsList = [];
-  // List of planets to display.
-  List<Planet> planetsListToDisplay = [];
   final TextEditingController _searchController = TextEditingController();
-  _PlanetDatabase(this.username);
+  final KeplerBloc _keplerBloc = KeplerBloc();
+  List<Planet> fullPlanetsList = [];
+
+  _PlanetDatabase();
 
   retrievePlanetData() async {
-    KeplerApi keplerApi = KeplerApi();
-    planetsList = await keplerApi.getDataOfAllPlanets();
-    planetsListToDisplay = List.from(planetsList);
-    loadingPlanetData = false;
-    setState((){});
-  }
-
-  initKeywordPlanetSearch(String searchKey) {
-    setState(() {
-      loadingPlanetData = true;
-      doKeywordPlanetSearch(searchKey);
-    });
+    DoPlanetSearch doPlanetSearch = DoPlanetSearch(searchTerm: "", planets: []);
+    _keplerBloc.add(doPlanetSearch);
   }
 
   doKeywordPlanetSearch(String searchKey) async {
-    planetsListToDisplay.clear();
-    for (Planet planet in planetsList) {
-      String planetName = planet.keplerName.toLowerCase();
-      if (planetName.contains(searchKey.toLowerCase())) {
-        planetsListToDisplay.add(planet);
-      }
-    }
-    setState(() {
-      loadingPlanetData = false;
-    });
-  }
-
-  Widget buildSearchTextBox() {
-    return TextField(
-      autofocus: false,
-        controller: _searchController,
-        decoration: const InputDecoration(
-          border: UnderlineInputBorder(),
-          hintText: "Search ...",
-        ),
-      onSubmitted: initKeywordPlanetSearch,
-    );
-  }
-
-  Widget buildPlanetRowHeader(Planet planet) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      children: [
-        Image.asset(planet.planetImage, height: 50.0),
-        Padding(
-          padding: const EdgeInsets.only(left: 10.0),
-          child: Text(planet.keplerName),
-        ),
-      ]
-    );
-  }
-
-  Widget buildPlanetChildren(Planet planet) {
-    String status = planet.planetStatus;
-    String radius = planet.planetRadius.toString();
-    String distanceFromStar = planet.distanceFromStar;
-    String planetTemperature = planet.planetTemperature;
-
-    Widget planetStatusWidget = Text("Status: $status");
-    Widget planetRadiusWidget = Text("Radius: $radius RE");
-    Widget distanceFromStarWidget = Text("Distance from star: $distanceFromStar pc");
-    Widget planetTemperatureWidget = Text("Temperature: $planetTemperature K");
-
-    // I want the children to start at the left, so adding cross Axis Alignment
-    Widget columnForChildren = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        planetStatusWidget,
-        planetRadiusWidget,
-        distanceFromStarWidget,
-        planetTemperatureWidget
-      ]
-    );
-
-    Widget alignColumnWidget = Align(
-      child: columnForChildren,
-      alignment: Alignment.topLeft
-    );
-
-    return alignColumnWidget;
-  }
-  
-  Widget buildPlanetRow(Planet planet) {
-    // added theme to removed expanded divider.
-    return Theme(
-      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-      child: ExpansionTile(
-        title: buildPlanetRowHeader(planet),
-        childrenPadding: const EdgeInsets.all(10.0),
-        children: [buildPlanetChildren(planet)],
-
-      ),
-    );
-  }
-
-  Widget planetItemBuilder(BuildContext context, pos) {
-    return buildPlanetRow(planetsListToDisplay[pos]);
+    DoPlanetSearch doPlanetSearch = DoPlanetSearch(searchTerm: searchKey, planets: fullPlanetsList);
+    _keplerBloc.add(doPlanetSearch);
   }
 
   Widget planetSeparatorBuilder(BuildContext context, pos) {
     return const Divider(color: Colors.grey,);
   }
 
-  Widget buildPlanetDataList() {
-    if (planetsListToDisplay.isEmpty) {
+  Widget buildPlanetDataList(List<Planet> planets) {
+    if (planets.isEmpty) {
       return const Center(child: Text("No results"),);
     } else {
       return ListView.separated(
-          itemBuilder: planetItemBuilder,
-          separatorBuilder: planetSeparatorBuilder,
-          itemCount: planetsListToDisplay.length
+        itemBuilder: (context, pos) {
+          return PlanetRow(planet: planets[pos],);
+        },
+        separatorBuilder: planetSeparatorBuilder,
+        itemCount: planets.length
       );
     }
   }
@@ -151,9 +66,38 @@ class _PlanetDatabase extends State<PlanetDatabase> {
     );
   }
 
+  // todo: see if there is a builder class I can use
+  Widget buildPlanetSearchChildren(BuildContext context, PlanetSearchHelper helper) {
+    SearchStatus status = helper.status;
+    List<Planet> planets = helper.planets;
+
+    Widget centerChild;
+    if (status == SearchStatus.complete) {
+      centerChild = buildPlanetDataList(planets);
+    } else {
+      centerChild = const LoadingWidget();
+    }
+    return Center(
+        child: centerChild,
+      );
+  }
+
+  // todo: boolean checks could be something like this?
+  bool searchResultsChanged(List<Planet> newPlanetsList) {
+    return newPlanetsList.length > fullPlanetsList.length;
+  }
+
+  updatePlanetListIfNeeded(BuildContext context, PlanetSearchHelper helper) {
+    List<Planet> newPlanetsList = helper.planets;
+
+    if (searchResultsChanged(newPlanetsList)) {
+      fullPlanetsList = List.from(newPlanetsList);
+    }
+  }
+
   AppBar buildAppBar() {
     return AppBar(
-      title: buildSearchTextBox(),
+      title: SearchTextBox(doKeywordPlanetSearch: doKeywordPlanetSearch, searchController: _searchController),
       backgroundColor: Colors.white,
       iconTheme: const IconThemeData(color: Colors.black),
     );
@@ -168,19 +112,23 @@ class _PlanetDatabase extends State<PlanetDatabase> {
   @override
   Widget build(BuildContext context) {
 
-    Widget centerChild;
-    if (loadingPlanetData) {
-      centerChild = buildLoadingWidget();
-    } else {
-      centerChild = buildPlanetDataList();
-    }
-
     return Scaffold(
       appBar: buildAppBar(),
-      body: Center(
-        child: centerChild,
+      body: BlocListener<KeplerBloc, PlanetSearchHelper>(
+        listener: updatePlanetListIfNeeded ,
+        bloc: _keplerBloc,
+        child: BlocBuilder<KeplerBloc, PlanetSearchHelper>(
+          builder: buildPlanetSearchChildren,
+          bloc: _keplerBloc,
+        ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _keplerBloc.close();
+    super.dispose();
   }
 
 }
