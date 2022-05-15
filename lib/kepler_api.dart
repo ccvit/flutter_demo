@@ -19,6 +19,7 @@ class KeplerApi {
     String data = requestResults.body;
     List<dynamic> rawDataList = jsonDecode(data);
     for (dynamic rawData in rawDataList) {
+      print(rawData);
       Planet planet = Planet.fromJson(rawData);
       planets.add(planet);
     }

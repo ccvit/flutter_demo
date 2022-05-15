@@ -19,8 +19,6 @@ class Planet {
   });
 
   factory Planet.fromJson(dynamic json) {
-
-    // Cannot access instance variables from outside factories.
     String _getPlanetImage(double planetRadius) {
       if (planetRadius < 3.0) {
         return "assets/kepler_small.png";
@@ -34,7 +32,6 @@ class Planet {
     int kepId = json["kepid"];
     String planetStatus = json["koi_pdisposition"] ?? "UNKNOWN";
     String keplerName = json["kepler_name"];
-    //koi_prad sometimes int, thus can't use ??
     double planetRadius = json["koi_prad"] != null? json["koi_prad"].toDouble() : 0.0;
     String distanceFromStar = json["koi_dor"].toString();
     String planetImage = _getPlanetImage(planetRadius);

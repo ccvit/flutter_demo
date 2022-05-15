@@ -48,7 +48,6 @@ class _PlanetDatabase extends State<PlanetDatabase> {
       return const Center(child: Text("No results"),);
     } else {
       return ListView.separated(
-        // putting itemBuilder function in here. No other way to show really.
         itemBuilder: (context, pos) {
           return PlanetRow(planet: planets[pos],);
         },

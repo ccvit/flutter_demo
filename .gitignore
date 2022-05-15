@@ -1028,3 +1028,15 @@ android/.DS_Store
 ios/.DS_Store
 ios/Runner/.DS_Store
 lib/.DS_Store
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/.filecache
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/app.dill
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/App.framework/App
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/debug_ios_bundle_flutter_assets.stamp
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/debug_universal_framework.stamp
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/debug_unpack_ios.stamp
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/flutter_assets.d
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/gen_dart_plugin_registrant.stamp
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/gen_localizations.stamp
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/kernel_snapshot.d
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/kernel_snapshot.stamp
+.dart_tool/flutter_build/2e12580a10326f233e15b4676d3ffabc/outputs.json

@@ -15,7 +15,9 @@ class SearchTextBox extends StatelessWidget {
         border: UnderlineInputBorder(),
         hintText: "Search ...",
       ),
-      onSubmitted: (result) => doKeywordPlanetSearch(),
+      onSubmitted: (result) {
+        doKeywordPlanetSearch(result);
+      },
     );
   }
 }
